@@ -1,6 +1,14 @@
 # YCHTTOPYMIW11
 ### You Can Hide The Taskbar On Your Primary Monitor In Windows 11
 
+<p align="center">
+  <b>Language / Dil:</b>
+  <a href="README.md">🇬🇧 English</a> |
+  <a href="README.tr.md">🇹🇷 Türkçe</a>
+</p>
+
+---
+
 [![Platform](https://img.shields.io/badge/Platform-Windows%2011%20(64--bit)-blue.svg)](https://microsoft.com/windows)
 [![Framework](https://img.shields.io/badge/.NET-8.0%20LTS-purple.svg)](https://dotnet.microsoft.com/)
 [![Architecture](https://img.shields.io/badge/Architecture-WPF%20%7C%20MVVM%20%7C%20Win32-green.svg)]()
@@ -9,113 +17,113 @@
 
 **GitHub Repository:** `you-can-hide-the-taskbar-on-your-primary-monitor-in-windows-11`
 
-**YCHTTOPYMIW11**, Windows 11 işletim sisteminde çoklu monitör kullanan kullanıcılar için geliştirilmiş, özellikle ana monitörde veya istenilen herhangi bir ekranda görev çubuğunu fare kenar tetikleyicisi olmaksızın kalıcı olarak gizleyen ve masaüstü çalışma alanını tam ekrana genişleten yerel bir Windows masaüstü aracıdır.
+**YCHTTOPYMIW11** is a native Windows 11 multi-monitor utility designed to permanently hide the taskbar on your primary display (or any selected screen) without mouse edge-reveal triggers, while automatically expanding the desktop work area to true full screen.
 
-Modern C# / .NET 8.0 LTS ve yerel Win32 API'leri üzerine inşa edilmiştir.
-
----
-
-## 1. Temel Özellikler
-
-- **Bağımsız Görev Çubuğu İlkeleri**: Her ekran için ayrı ayrı ilke seçebilme:
-  - **Her Zaman Görünür**: Standart Windows davranışı (görev çubuğu ekranda sabit kalır).
-  - **Kalıcı Olarak Gizli**: Görev çubuğunu tamamen gizler; fare imleci ekranın alt kenarına getirilse bile görev çubuğunun açılmasını, kaymasını veya anlık yanıp sönmesini engeller.
-- **Masaüstü Çalışma Alanı (Work Area) Otomatik Genişletme**:
-  - Görev çubuğu gizlendiğinde Windows'un altta rezerve ettiği 48 piksellik alanı serbest bırakır.
-  - Pencereler büyütüldüğünde (maximize) ekranın en altına kadar uzanır; alt kenarda hiçbir siyah/boş alan kalmaz.
-  - Masaüstü simgelerinin alt alana serbestçe yerleşmesine imkan tanır.
-  - Mevcut masaüstü simge dizilimini bozmaz veya sıfırlamaz.
-- **Modern Windows 11 Sekmeli Arayüz (Tabs)**:
-  - **Görev Çubukları Sekmesi**: Sade monitör kartları, anlık çözünürlük, DPI, mevcut görev çubuğu durumu ve tek tıkla ilke seçimi.
-  - **Uygulama ve Kurtarma Ayarları Sekmesi**: Başlangıç, Explorer kurtarma ve detaylı tanılama seçenekleri.
-  - **İnteraktif Akordeon Logo & Başlık**: Başlık alanında `YCHTTOPYMIW11` kısaltması ve üzerine fare getirildiğinde harflerin birbirini iterek açıldığı akıcı kinetik tipografi animasyonu.
-- **Otomatik Kurtarma ve Olay Takibi**:
-  - **Explorer Yeniden Başlatma**: Windows Gezgini çöktüğünde veya yeniden başlatıldığında (`TaskbarCreated`), ilkeleri otomatik olarak tekrar uygular.
-  - **Ekran Düzeni Değişiklikleri**: Monitör takılıp çıkarıldığında, çözünürlük veya DPI değiştiğinde (`WM_DISPLAYCHANGE`), sistem durumunu otomatik algılar ve günceller.
-  - Sıfır yoklama döngüsü (Zero polling loops) — tamamen olay güdümlü Win32 mimarisi.
-- **Güvenli Geri Alma (Safe Rollback)**:
-  - Tek tıklamayla Windows varsayılan ayarlarına dönebilme.
-  - Uygulama kapatıldığında veya acil durumlarda orijinal çalışma alanını ve görev çubuğu görünürlüğünü eksiksiz geri yükleme.
+Built with modern C# / .NET 8.0 LTS and direct Win32 API integration.
 
 ---
 
-## 2. Sistem Gereksinimleri
+## 1. Key Features
 
-- **İşletim Sistemi**: Windows 11 (Tüm 64-bit sürümler)
-- **Geliştirme / Derleme İçin**: .NET 8.0 SDK (x64)
-- **Çalıştırma İçin**: .NET 8.0 Desktop Runtime (veya `publish` ile üretilen tek dosya self-contained paket için hiçbir ek kurulum gerekmez)
-- **Ekran**: 2 veya daha fazla fiziksel / sanal monitör
+- **Independent Taskbar Policies**: Configure individual policies per monitor:
+  - **Always Visible**: Default Windows behavior (taskbar remains visible).
+  - **Permanently Hidden**: Completely hides the taskbar; moving the mouse cursor to the bottom edge will NOT trigger, slide, or flash the taskbar.
+- **Automatic Desktop Work Area Expansion**:
+  - Automatically releases the 48px reserved taskbar area when hidden.
+  - Maximized windows extend seamlessly to the bottom edge of the display with zero gap or black bar.
+  - Desktop icons can freely occupy the bottom area.
+  - Preserves desktop icon arrangement without resetting or displacing items.
+- **Modern Windows 11 Tabbed UI**:
+  - **Taskbars Tab**: Streamlined monitor cards displaying live resolution, DPI scale, current visibility state, and policy dropdowns.
+  - **App & Recovery Settings Tab**: Startup options, Explorer crash auto-recovery, and system diagnostics.
+  - **Interactive Accordion Title Header**: Dynamic kinetic typography header featuring the acronym `YCHTTOPYMIW11`; hovering reveals each full word smoothly pushing adjacent letters.
+- **Event-Driven Resilience & Auto-Recovery**:
+  - **Explorer Crash / Restart Recovery**: Listens for the `TaskbarCreated` message to automatically re-enforce configured policies if Windows Explorer restarts.
+  - **Display Topology Changes**: Responds to `WM_DISPLAYCHANGE` whenever displays are connected, disconnected, or resolutions/DPI change.
+  - Zero polling loops — completely event-driven Win32 architecture for minimal CPU and memory footprint.
+- **Safe Rollback**:
+  - One-click restore to default Windows configuration.
+  - Automatically restores work areas and taskbar visibility upon application exit or emergency recovery.
 
 ---
 
-## 3. Derleme ve Dağıtım (`build.cmd`)
+## 2. System Requirements
 
-Projeyi derlemek, test etmek, temizlemek ve dağıtım paketini oluşturmak için kök dizindeki **`build.cmd`** betiği kullanılır. Betik, sistemde yüklü .NET 8.0 SDK'sını otomatik olarak algılar.
+- **Operating System**: Windows 11 (All 64-bit editions)
+- **Development / Build**: .NET 8.0 SDK (x64)
+- **Runtime**: .NET 8.0 Desktop Runtime (or zero requirements if using the single-file self-contained publish executable)
+- **Display Setup**: 2 or more physical or virtual monitors
 
-### Kullanılabilir Komutlar:
+---
+
+## 3. Build & Deployment (`build.cmd`)
+
+Use the root-level script **`build.cmd`** to build, test, clean, or create a standalone release package. The script automatically detects the installed .NET 8.0 SDK.
+
+### Available Commands:
 
 ```cmd
-REM 1. Debug Modunda Derleme
+REM 1. Build in Debug mode
 build.cmd
 
-REM 2. Release Modunda Optimize Derleme
+REM 2. Build in Release mode (optimized)
 build.cmd release
 
-REM 3. Tüm xUnit Birim Testlerini Çalıştırma
+REM 3. Run all xUnit unit tests
 build.cmd test
 
-REM 4. Bağımsız Tek Dosya (.exe) Yayınlama (Publish)
+REM 4. Publish standalone single-file (.exe)
 build.cmd publish
 
-REM 5. Tüm Geçici Çıktıları ve Önbellekleri Temizleme
+REM 5. Clean all build outputs and caches
 build.cmd clean
 ```
 
-### Bağımsız Yayın (Publish) Detayları:
-`build.cmd publish` komutunu çalıştırdığınızda:
-- .NET Runtime kurulu olmayan bilgisayarlarda doğrudan çift tıklanarak çalışabilen tek dosya (`publish\YCHTTOPYMIW11.exe`) üretilir.
-- Çıktı dizini: `c:\Projeler\publish\YCHTTOPYMIW11.exe`
-- Derleme paketinde gereksiz tüm eski dosyalar temizlenmiştir; doğrudan dağıtıma ve paylaşıma hazırdır.
+### Standalone Executable (Publish):
+Executing `build.cmd publish` generates:
+- A standalone, self-contained single executable (`publish\YCHTTOPYMIW11.exe`) that runs on any Windows 11 machine without installing .NET Runtime or external dependencies.
+- Output location: `publish\YCHTTOPYMIW11.exe`
+- Ready for immediate distribution or portable use.
 
 ---
 
-## 4. Kullanım Kılavuzu
+## 4. User Guide
 
-1. `YCHTTOPYMIW11.exe` uygulamasını çalıştırın.
-2. **Görev Çubukları** sekmesinde algılanan tüm monitörler listelenir.
-3. Görev çubuğunu gizlemek istediğiniz monitör (örneğin Ana Ekran):
-   - **Görev Çubuğu İlkesi** kutusundan **Kalıcı Olarak Gizli** seçeneğini seçin.
-4. Görev çubuğunun kalmasını istediğiniz diğer monitör için:
-   - **Her Zaman Görünür** seçeneğini koruyun.
-5. Sağ alttaki **İlkeleri Uygula** butonuna tıklayın.
-6. Seçilen monitörün görev çubuğu anında gizlenecek, çalışma alanı tam ekrana genişleyecek ve diğer monitördeki görev çubuğu normal şekilde çalışmaya devam edecektir.
-
----
-
-## 5. Uygulama ve Kurtarma Ayarları
-
-Uygulamanın ikinci sekmesinde sistem entegrasyonu ve dayanıklılık ayarları yer alır:
-
-- **Windows açılışında otomatik başlat**: Uygulamayı `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` altına ekleyerek açılışta arka planda devreye sokar.
-- **Sistem bildirim alanında (tepside) simge durumunda başlat**: Açılışta ana pencereyi açmadan doğrudan sistem tepsisine küçülür.
-- **Windows Gezgini (Explorer) yeniden başladığında görev çubuğu ilkelerini otomatik olarak yeniden uygula**: `TaskbarCreated` sinyalini dinleyerek görev çubuğunun daima istenen ilkede kalmasını sağlar.
-- **Monitör bağlandığında/çıkarıldığında veya çözünürlük değiştiğinde ilkeleri otomatik uyarla**: `WM_DISPLAYCHANGE` olayında ekran düzenini günceller.
-- **Detaylı Sistem Raporu**: İleri düzey kullanıcılar ve hata ayıklama için tüm Win32 pencere tanıtıcılarını (`HWND`), pencere ağacını ve ham koordinatları gösterir.
+1. Launch `YCHTTOPYMIW11.exe`.
+2. Under the **Taskbars** tab, view your connected monitors.
+3. For the monitor where you wish to hide the taskbar (e.g., Primary Display):
+   - Set **Taskbar Policy** to **Permanently Hidden**.
+4. For any monitor where you wish to keep the taskbar:
+   - Ensure **Always Visible** is selected.
+5. Click **Apply Policies** in the bottom right corner.
+6. The target taskbar hides immediately, the desktop work area expands to true full screen, and other monitors retain their taskbars unaffected.
 
 ---
 
-## 6. Acil Durum Kurtarma Kılavuzu
+## 5. Application & Recovery Settings
 
-Görev çubuklarını ve çalışma alanlarını orijinal durumuna döndürmek için:
+The second tab provides system integration and resilience settings:
 
-### Yöntem 1: Uygulama İçinden
-Uygulamanın alt kısmındaki **Varsayılanları Geri Yükle** butonuna tıklayın.
+- **Launch on Windows Startup**: Adds an entry to `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` to start YCHTTOPYMIW11 in the background on boot.
+- **Start minimized to System Tray**: Keeps the main window hidden on boot, living quietly in the notification area.
+- **Re-apply policies when Windows Explorer restarts**: Captures the `TaskbarCreated` broadcast message.
+- **Re-evaluate policies on display configuration changes**: Handles `WM_DISPLAYCHANGE` events.
+- **Detailed System Report**: Displays Win32 window handles (`HWND`), window hierarchy, and raw coordinates for troubleshooting.
 
-### Yöntem 2: Sistem Tepsisinden
-Sistem bildirim alanındaki simgeye sağ tıklayıp **Varsayılanları Geri Yükle** seçeneğini seçin.
+---
 
-### Yöntem 3: PowerShell ile Acil Kurtarma
-Uygulama kapalıyken acil geri alma gerekirse aşağıdaki komutu PowerShell'de çalıştırabilirsiniz:
+## 6. Emergency Recovery
+
+To immediately restore all taskbars and work areas to Windows defaults:
+
+### Method 1: In the Application
+Click the **Restore Defaults** button at the bottom of the window.
+
+### Method 2: System Tray Icon
+Right-click the YCHTTOPYMIW11 icon in the notification tray and select **Restore Defaults**.
+
+### Method 3: Emergency PowerShell Script
+If the application is closed and you need an immediate manual reset, run this in PowerShell:
 
 ```powershell
 Add-Type -TypeDefinition @'
@@ -138,15 +146,15 @@ public class Restorer {
 
 ---
 
-## 7. Proje Belgeleri
+## 7. Project Documentation
 
-- [Teknik Araştırma ve Win32 İncelemesi](docs/technical-research.md)
-- [Mimari Tasarım Belgesi](docs/architecture.md)
-- [Donanım Test Planı](docs/testing.md)
-- [Sistem Tanılama Raporu (Host Çıktısı)](docs/diagnostic-system-report.md)
+- [Technical Research & Win32 Deep Dive](docs/technical-research.md)
+- [Architecture & Design Specification](docs/architecture.md)
+- [Hardware Test Plan & Scenarios](docs/testing.md)
+- [Host Diagnostic System Report](docs/diagnostic-system-report.md)
 
 ---
 
-## 8. Lisans
+## 8. License
 
-Bu proje [MIT Lisansı](LICENSE) altında lisanslanmıştır. Açık kaynaklıdır ve özgürce çatallanabilir (fork).
+This project is licensed under the [MIT License](LICENSE). Open-source and free to fork and customize.

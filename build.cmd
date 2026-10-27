@@ -30,6 +30,11 @@ if %ERRORLEVEL% neq 0 (
     )
 )
 
+if not exist "src\YCHTTOPYMIW11.App\Assets\app.ico" (
+    echo [BILGI] Uygulama logosu ve simge dosyalari hazirlaniyor...
+    powershell -ExecutionPolicy Bypass -File generate_logo.ps1
+)
+
 if "%1"=="" goto :build_debug
 if /i "%1"=="release" goto :build_release
 if /i "%1"=="publish" goto :publish

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
@@ -84,10 +84,41 @@ namespace YCHTTOPYMIW11.App
 
         private void InitializeNotifyIcon()
         {
+            System.Drawing.Icon? appIcon = null;
+
+            try
+            {
+                var resourceUri = new Uri("pack://application:,,,/YCHTTOPYMIW11;component/Assets/app.ico", UriKind.RelativeOrAbsolute);
+                var streamInfo = System.Windows.Application.GetResourceStream(resourceUri);
+                if (streamInfo != null)
+                {
+                    using var ms = new System.IO.MemoryStream();
+                    streamInfo.Stream.CopyTo(ms);
+                    ms.Seek(0, System.IO.SeekOrigin.Begin);
+                    appIcon = new System.Drawing.Icon(ms);
+                }
+            }
+            catch
+            {
+                // Fallback to process executable icon
+                try
+                {
+                    var exePath = Environment.ProcessPath ?? System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+                    if (!string.IsNullOrEmpty(exePath) && System.IO.File.Exists(exePath))
+                    {
+                        appIcon = System.Drawing.Icon.ExtractAssociatedIcon(exePath);
+                    }
+                }
+                catch
+                {
+                    // Fallback to system icon
+                }
+            }
+
             _notifyIcon = new NotifyIcon
             {
                 Text = "YCHTTOPYMIW11",
-                Icon = System.Drawing.SystemIcons.Application,
+                Icon = appIcon ?? System.Drawing.SystemIcons.Application,
                 Visible = true
             };
 

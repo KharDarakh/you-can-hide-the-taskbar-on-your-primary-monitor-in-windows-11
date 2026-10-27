@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="src/YCHTTOPYMIW11.App/Assets/app.png" width="96" height="96" alt="YCHTTOPYMIW11 Logo" />
+</p>
+
 # YCHTTOPYMIW11
 ### You Can Hide The Taskbar On Your Primary Monitor In Windows 11
 

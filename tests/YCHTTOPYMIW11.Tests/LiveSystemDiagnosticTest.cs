@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -26,9 +26,21 @@ namespace YCHTTOPYMIW11.Tests
             string report = reportGenerator.GenerateSnapshotReport(snapshot);
             Assert.NotEmpty(report);
 
-            // Write the diagnostic report to docs/diagnostic-system-report.md
-            string reportPath = @"c:\Projeler\docs\diagnostic-system-report.md";
-            File.WriteAllText(reportPath, report);
+            // Write the diagnostic report to docs/diagnostic-system-report.md if docs directory exists
+            var dir = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
+            while (dir != null && !File.Exists(Path.Combine(dir.FullName, "YCHTTOPYMIW11.sln")))
+            {
+                dir = dir.Parent;
+            }
+
+            if (dir != null)
+            {
+                string docsDir = Path.Combine(dir.FullName, "docs");
+                if (Directory.Exists(docsDir))
+                {
+                    File.WriteAllText(Path.Combine(docsDir, "diagnostic-system-report.md"), report);
+                }
+            }
         }
     }
 }

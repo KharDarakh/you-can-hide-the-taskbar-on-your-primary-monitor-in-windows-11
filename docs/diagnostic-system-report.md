@@ -1,5 +1,5 @@
 # YCHTTOPYMIW11 Windows 11 Sistem Tanılama Raporu
-Rapor Oluşturulma Zamanı (UTC): 2026-10-27 04:10:16
+Rapor Oluşturulma Zamanı (UTC): 2026-10-27 04:49:33
 
 ## 1. Algılanan Monitörler ve Çalışma Alanları
 - **DISPLAY1 (Ana Ekran)** (\\.\DISPLAY1)

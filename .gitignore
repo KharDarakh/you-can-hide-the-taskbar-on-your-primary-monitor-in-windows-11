@@ -1,0 +1,38 @@
+## .NET & Build Outputs
+[Bb]in/
+[Oo]bj/
+publish/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+bld/
+
+## Local Tooling & Caches
+.dotnet/
+.nuget/
+packages/
+**/[Pp]ackages/*
+*.nupkg
+*.snupkg
+
+## Executables & Binaries in publish/
+publish/*
+*.exe
+*.dll
+*.pdb
+*.msi
+
+## IDE & User Settings
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Temporary & Logs
+*.log
+*.tmp
+*.swp
+*~

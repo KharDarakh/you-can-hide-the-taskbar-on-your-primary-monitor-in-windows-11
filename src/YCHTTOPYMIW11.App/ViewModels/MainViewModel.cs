@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
+using YCHTTOPYMIW11.App.Services;
 using YCHTTOPYMIW11.Core.Models;
 using YCHTTOPYMIW11.Core.Services;
 using YCHTTOPYMIW11.Diagnostics.Models;
@@ -24,11 +25,16 @@ namespace YCHTTOPYMIW11.App.ViewModels
         private readonly IDiagnosticCollector _diagnosticCollector;
         private readonly ISystemReportGenerator _reportGenerator;
 
-        private string _statusText = "Hazır";
+        private string _statusText = string.Empty;
         private bool _isStatusError;
         private bool _isBusy;
         private string _diagnosticReportText = string.Empty;
         private bool _isReportModalOpen;
+
+        // Close Action State
+        private CloseAction _closeAction = CloseAction.Ask;
+        private bool _isCloseModalOpen;
+        private bool _closeModalRememberChoice;
 
         // Settings
         private bool _startWithWindows;
@@ -37,6 +43,8 @@ namespace YCHTTOPYMIW11.App.ViewModels
         private bool _autoRecoverOnExplorerRestart;
         private bool _autoRecoverOnDisplayChange;
 
+        public LocalizationService Loc => LocalizationService.Instance;
+
         public ObservableCollection<MonitorCardViewModel> Monitors { get; } = new();
 
         public ICommand ApplyCommand { get; }
@@ -44,6 +52,14 @@ namespace YCHTTOPYMIW11.App.ViewModels
         public ICommand GenerateReportCommand { get; }
         public ICommand RefreshCommand { get; }
         public ICommand CloseReportModalCommand { get; }
+
+        public ICommand ConfirmMinimizeToTrayCommand { get; }
+        public ICommand ConfirmExitCommand { get; }
+        public ICommand CancelCloseModalCommand { get; }
+        public ICommand ResetCloseActionCommand { get; }
+
+        public event Action? RequestMinimizeToTray;
+        public event Action? RequestShutdown;
 
         public MainViewModel(
             ILogger<MainViewModel> logger,
@@ -72,12 +88,111 @@ namespace YCHTTOPYMIW11.App.ViewModels
             RefreshCommand = new RelayCommand(RefreshState, () => !IsBusy);
             CloseReportModalCommand = new RelayCommand(() => IsReportModalOpen = false);
 
+            ConfirmMinimizeToTrayCommand = new RelayCommand(OnConfirmMinimizeToTray);
+            ConfirmExitCommand = new RelayCommand(OnConfirmExit);
+            CancelCloseModalCommand = new RelayCommand(() => IsCloseModalOpen = false);
+            ResetCloseActionCommand = new RelayCommand(ResetCloseAction);
+
             _recoveryService.ExplorerRestarted += OnExplorerRestarted;
             _recoveryService.DisplayTopologyChanged += OnDisplayTopologyChanged;
             _recoveryService.StartListening();
 
+            LocalizationService.Instance.LanguageChanged += OnLanguageChanged;
+
             LoadConfiguration();
+            _statusText = Loc.Ready;
             RefreshState();
+        }
+
+        private void OnLanguageChanged()
+        {
+            OnPropertyChanged(nameof(SelectedLanguageIndex));
+            OnPropertyChanged(nameof(SelectedCloseActionIndex));
+            OnPropertyChanged(nameof(Loc));
+            SetStatus(Loc.Ready, false);
+        }
+
+        public int SelectedLanguageIndex
+        {
+            get => Loc.IsTurkish ? 0 : 1;
+            set
+            {
+                string target = value == 0 ? "tr" : "en";
+                if (Loc.CurrentLanguage != target)
+                {
+                    Loc.CurrentLanguage = target;
+                    SaveConfiguration();
+                }
+            }
+        }
+
+        public CloseAction CloseActionPreference
+        {
+            get => _closeAction;
+            set
+            {
+                if (SetField(ref _closeAction, value))
+                {
+                    OnPropertyChanged(nameof(SelectedCloseActionIndex));
+                    SaveConfiguration();
+                }
+            }
+        }
+
+        public int SelectedCloseActionIndex
+        {
+            get => (int)_closeAction;
+            set
+            {
+                if (value >= 0 && value <= 2)
+                {
+                    CloseActionPreference = (CloseAction)value;
+                }
+            }
+        }
+
+        public bool IsCloseModalOpen
+        {
+            get => _isCloseModalOpen;
+            set => SetField(ref _isCloseModalOpen, value);
+        }
+
+        public bool CloseModalRememberChoice
+        {
+            get => _closeModalRememberChoice;
+            set => SetField(ref _closeModalRememberChoice, value);
+        }
+
+        public void OpenCloseModal()
+        {
+            CloseModalRememberChoice = false;
+            IsCloseModalOpen = true;
+        }
+
+        private void OnConfirmMinimizeToTray()
+        {
+            if (CloseModalRememberChoice)
+            {
+                CloseActionPreference = CloseAction.MinimizeToTray;
+            }
+            IsCloseModalOpen = false;
+            RequestMinimizeToTray?.Invoke();
+        }
+
+        private void OnConfirmExit()
+        {
+            if (CloseModalRememberChoice)
+            {
+                CloseActionPreference = CloseAction.Exit;
+            }
+            IsCloseModalOpen = false;
+            RequestShutdown?.Invoke();
+        }
+
+        public void ResetCloseAction()
+        {
+            CloseActionPreference = CloseAction.Ask;
+            SetStatus(Loc.CloseActionResetSuccess, false);
         }
 
         public string StatusText
@@ -200,19 +315,19 @@ namespace YCHTTOPYMIW11.App.ViewModels
                     Monitors.Add(card);
                 }
 
-                SetStatus("Sistem durumu başarıyla güncellendi.", false);
+                SetStatus(Loc.Ready, false);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to refresh state");
-                SetStatus("Ekran bilgileri alınamadı: " + ex.Message, true);
+                SetStatus(string.Format(Loc.ApplyError, ex.Message), true);
             }
         }
 
         public async Task ApplyPoliciesAsync()
         {
             IsBusy = true;
-            SetStatus("İlkeler uygulanıyor...", false);
+            SetStatus(Loc.ApplyingPolicies, false);
 
             await Task.Run(() =>
             {
@@ -227,12 +342,12 @@ namespace YCHTTOPYMIW11.App.ViewModels
                     }
 
                     SaveConfiguration();
-                    SetStatus("Görev çubuğu ilkeleri ve masaüstü alanları başarıyla uygulandı.", false);
+                    SetStatus(Loc.AppliedSuccess, false);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error applying policies");
-                    SetStatus("İlke uygulama hatası: " + ex.Message, true);
+                    SetStatus(string.Format(Loc.ApplyError, ex.Message), true);
                 }
             });
 
@@ -244,15 +359,16 @@ namespace YCHTTOPYMIW11.App.ViewModels
         {
             try
             {
+                SetStatus(Loc.RestoringDefaults, false);
                 _policyEngine.RestoreAllPolicies();
                 _configService.ResetToDefaults();
                 RefreshState();
-                SetStatus("Tüm ayarlar ve görev çubukları varsayılan Windows durumuna döndürüldü.", false);
+                SetStatus(Loc.RestoredSuccess, false);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed restoring defaults");
-                SetStatus("Sıfırlama hatası: " + ex.Message, true);
+                SetStatus(string.Format(Loc.RestoreError, ex.Message), true);
             }
         }
 
@@ -260,27 +376,41 @@ namespace YCHTTOPYMIW11.App.ViewModels
         {
             try
             {
+                SetStatus(Loc.GeneratingReport, false);
                 var snapshot = _diagnosticCollector.CaptureSnapshot();
                 DiagnosticReportText = _reportGenerator.GenerateSnapshotReport(snapshot);
                 IsReportModalOpen = true;
-                SetStatus("Sistem tanılama raporu oluşturuldu.", false);
+                SetStatus(Loc.ReportGenerated, false);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to generate report");
-                SetStatus("Rapor oluşturma hatası: " + ex.Message, true);
+                SetStatus(string.Format(Loc.ApplyError, ex.Message), true);
             }
         }
 
         private void LoadConfiguration()
         {
             var config = _configService.LoadConfig();
+
+            if (!string.IsNullOrWhiteSpace(config.Language))
+            {
+                Loc.CurrentLanguage = config.Language;
+            }
+            else
+            {
+                Loc.CurrentLanguage = LocalizationService.DetectSystemLanguage();
+            }
+
+            _closeAction = config.CloseAction;
             _startWithWindows = config.StartWithWindows;
             _startMinimizedToTray = config.StartMinimizedToTray;
             _enableDiagnosticLogging = config.EnableDiagnosticLogging;
             _autoRecoverOnExplorerRestart = config.AutoRecoverOnExplorerRestart;
             _autoRecoverOnDisplayChange = config.AutoRecoverOnDisplayChange;
 
+            OnPropertyChanged(nameof(SelectedLanguageIndex));
+            OnPropertyChanged(nameof(SelectedCloseActionIndex));
             OnPropertyChanged(nameof(StartWithWindows));
             OnPropertyChanged(nameof(StartMinimizedToTray));
             OnPropertyChanged(nameof(EnableDiagnosticLogging));
@@ -292,6 +422,8 @@ namespace YCHTTOPYMIW11.App.ViewModels
         {
             var config = new AppConfig
             {
+                Language = Loc.CurrentLanguage,
+                CloseAction = CloseActionPreference,
                 StartWithWindows = StartWithWindows,
                 StartMinimizedToTray = StartMinimizedToTray,
                 EnableDiagnosticLogging = EnableDiagnosticLogging,
@@ -325,38 +457,44 @@ namespace YCHTTOPYMIW11.App.ViewModels
                     else
                     {
                         key.DeleteValue("YCHTTOPYMIW11", false);
-                        key.DeleteValue("YCHTTOPYMIW11", false);
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Could not update Windows startup registry key");
+                _logger.LogError(ex, "Failed updating startup registry");
             }
         }
 
         private void OnExplorerRestarted(object? sender, EventArgs e)
         {
-            if (!AutoRecoverOnExplorerRestart) return;
-
-            _logger.LogInformation("Automatic recovery triggered: Explorer restarted");
-            App.Current?.Dispatcher.InvokeAsync(async () =>
+            _logger.LogInformation("Explorer restart detected. Re-applying policies...");
+            App.Current?.Dispatcher?.Invoke(async () =>
             {
-                SetStatus("Windows Gezgini yeniden başlatıldı. İlkeler otomatik olarak geri yükleniyor...", false);
-                await ApplyPoliciesAsync();
+                if (AutoRecoverOnExplorerRestart)
+                {
+                    await ApplyPoliciesAsync();
+                }
+                else
+                {
+                    RefreshState();
+                }
             });
         }
 
         private void OnDisplayTopologyChanged(object? sender, EventArgs e)
         {
-            if (!AutoRecoverOnDisplayChange) return;
-
-            _logger.LogInformation("Automatic recovery triggered: Display topology changed");
-            App.Current?.Dispatcher.InvokeAsync(async () =>
+            _logger.LogInformation("Display topology change detected. Refreshing...");
+            App.Current?.Dispatcher?.Invoke(async () =>
             {
-                SetStatus("Ekran düzeni değişti. Algılanıyor...", false);
-                RefreshState();
-                await ApplyPoliciesAsync();
+                if (AutoRecoverOnDisplayChange)
+                {
+                    await ApplyPoliciesAsync();
+                }
+                else
+                {
+                    RefreshState();
+                }
             });
         }
 
@@ -367,4 +505,3 @@ namespace YCHTTOPYMIW11.App.ViewModels
         }
     }
 }
-

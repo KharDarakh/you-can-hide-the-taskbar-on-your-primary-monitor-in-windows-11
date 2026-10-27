@@ -1,18 +1,33 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Interop;
 using System.Windows.Media.Animation;
+using Microsoft.Win32;
+using YCHTTOPYMIW11.App.Services;
 using YCHTTOPYMIW11.App.ViewModels;
+using YCHTTOPYMIW11.Core.Models;
 
 namespace YCHTTOPYMIW11.App
 {
     public partial class MainWindow : Window
     {
+        [DllImport("dwmapi.dll", PreserveSig = true)]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+
+        private const int DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19;
+        private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+
         private readonly MainViewModel _viewModel;
         private NotifyIcon? _notifyIcon;
+        private ToolStripMenuItem? _trayShowItem;
+        private ToolStripMenuItem? _trayRestoreItem;
+        private ToolStripMenuItem? _trayExitItem;
+        private bool _isExplicitShutdown;
         private readonly List<(Border box, TextBlock text)> _accordionSegments = new();
 
         public MainWindow(MainViewModel viewModel)
@@ -21,8 +36,71 @@ namespace YCHTTOPYMIW11.App
             _viewModel = viewModel;
             DataContext = _viewModel;
 
+            _viewModel.RequestMinimizeToTray += () =>
+            {
+                WindowState = WindowState.Minimized;
+                Hide();
+            };
+
+            _viewModel.RequestShutdown += () =>
+            {
+                _isExplicitShutdown = true;
+                _notifyIcon?.Dispose();
+                _notifyIcon = null;
+                System.Windows.Application.Current.Shutdown();
+            };
+
             InitializeNotifyIcon();
             SetupAccordionAnimation();
+        }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+
+            var helper = new WindowInteropHelper(this);
+            if (helper.Handle != IntPtr.Zero)
+            {
+                ApplyTitleBarTheme(helper.Handle);
+                var source = HwndSource.FromHwnd(helper.Handle);
+                source?.AddHook(WndProc);
+            }
+        }
+
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            const int WM_SETTINGCHANGE = 0x001A;
+            if (msg == WM_SETTINGCHANGE)
+            {
+                ApplyTitleBarTheme(hwnd);
+            }
+            return IntPtr.Zero;
+        }
+
+        private static void ApplyTitleBarTheme(IntPtr hwnd)
+        {
+            int useDarkMode = IsWindowsInDarkTheme() ? 1 : 0;
+            if (DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDarkMode, sizeof(int)) != 0)
+            {
+                DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref useDarkMode, sizeof(int));
+            }
+        }
+
+        private static bool IsWindowsInDarkTheme()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
+                var value = key?.GetValue("AppsUseLightTheme");
+                if (value is int intVal)
+                {
+                    return intVal == 0;
+                }
+            }
+            catch
+            {
+            }
+            return true; // Default to dark theme
         }
 
         private void SetupAccordionAnimation()
@@ -115,6 +193,8 @@ namespace YCHTTOPYMIW11.App
                 }
             }
 
+            var loc = LocalizationService.Instance;
+
             _notifyIcon = new NotifyIcon
             {
                 Text = "YCHTTOPYMIW11",
@@ -123,13 +203,27 @@ namespace YCHTTOPYMIW11.App
             };
 
             var contextMenu = new ContextMenuStrip();
-            contextMenu.Items.Add("Göster", null, (s, e) => RestoreFromTray());
-            contextMenu.Items.Add("Varsayılanları Geri Yükle", null, (s, e) => _viewModel.RestoreDefaults());
+            _trayShowItem = new ToolStripMenuItem(loc.TrayShow, null, (s, e) => RestoreFromTray());
+            _trayRestoreItem = new ToolStripMenuItem(loc.TrayRestoreDefaults, null, (s, e) => _viewModel.RestoreDefaults());
+            _trayExitItem = new ToolStripMenuItem(loc.TrayExit, null, (s, e) => CloseApplication());
+
+            contextMenu.Items.Add(_trayShowItem);
+            contextMenu.Items.Add(_trayRestoreItem);
             contextMenu.Items.Add(new ToolStripSeparator());
-            contextMenu.Items.Add("Çıkış", null, (s, e) => CloseApplication());
+            contextMenu.Items.Add(_trayExitItem);
 
             _notifyIcon.ContextMenuStrip = contextMenu;
             _notifyIcon.DoubleClick += (s, e) => RestoreFromTray();
+
+            loc.LanguageChanged += UpdateTrayMenuTexts;
+        }
+
+        private void UpdateTrayMenuTexts()
+        {
+            var loc = LocalizationService.Instance;
+            if (_trayShowItem != null) _trayShowItem.Text = loc.TrayShow;
+            if (_trayRestoreItem != null) _trayRestoreItem.Text = loc.TrayRestoreDefaults;
+            if (_trayExitItem != null) _trayExitItem.Text = loc.TrayExit;
         }
 
         protected override void OnStateChanged(EventArgs e)
@@ -150,6 +244,7 @@ namespace YCHTTOPYMIW11.App
 
         private void CloseApplication()
         {
+            _isExplicitShutdown = true;
             _notifyIcon?.Dispose();
             _notifyIcon = null;
             System.Windows.Application.Current.Shutdown();
@@ -157,9 +252,34 @@ namespace YCHTTOPYMIW11.App
 
         protected override void OnClosing(CancelEventArgs e)
         {
-            _notifyIcon?.Dispose();
-            _notifyIcon = null;
-            base.OnClosing(e);
+            if (_isExplicitShutdown)
+            {
+                _notifyIcon?.Dispose();
+                _notifyIcon = null;
+                base.OnClosing(e);
+                return;
+            }
+
+            if (_viewModel.CloseActionPreference == CloseAction.MinimizeToTray)
+            {
+                e.Cancel = true;
+                WindowState = WindowState.Minimized;
+                Hide();
+                return;
+            }
+
+            if (_viewModel.CloseActionPreference == CloseAction.Exit)
+            {
+                _isExplicitShutdown = true;
+                _notifyIcon?.Dispose();
+                _notifyIcon = null;
+                base.OnClosing(e);
+                return;
+            }
+
+            // CloseAction.Ask -> Show modal overlay in UI
+            e.Cancel = true;
+            _viewModel.OpenCloseModal();
         }
     }
 }

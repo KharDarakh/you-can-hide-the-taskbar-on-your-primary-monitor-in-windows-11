@@ -7,8 +7,8 @@
         mc:Ignorable="d"
         Title="YCHTTOPYMIW11 — You Can Hide The Taskbar On Your Primary Monitor In Windows 11"
         Icon="Assets/app.ico"
-        Height="780" Width="1040"
-        MinHeight="600" MinWidth="850"
+        Width="1100" Height="750"
+        MinWidth="1080" MinHeight="720"
         WindowStartupLocation="CenterScreen"
         Background="#1E1E1E"
         Foreground="#FFFFFF"
@@ -53,7 +53,11 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#4A4A4A" />
+                                <Setter TargetName="border" Property="Background" Value="#484848" />
+                                <Setter TargetName="border" Property="BorderBrush" Value="#666666" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#2A2A2A" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="border" Property="Opacity" Value="0.5" />
@@ -66,7 +70,7 @@
 
         <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
             <Setter Property="Background" Value="{StaticResource AccentColor}" />
-            <Setter Property="BorderBrush" Value="{StaticResource AccentHover}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AccentColor}" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -146,12 +150,11 @@
         </Style>
 
         <Style x:Key="ModernDarkComboBox" TargetType="ComboBox">
-            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
             <Setter Property="Background" Value="#333333" />
             <Setter Property="BorderBrush" Value="#555555" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="#FFFFFF" />
-            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="Padding" Value="12,7" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="ItemContainerStyle" Value="{StaticResource DarkComboBoxItemStyle}" />
@@ -163,9 +166,9 @@
                                           Background="{TemplateBinding Background}"
                                           BorderBrush="{TemplateBinding BorderBrush}"
                                           BorderThickness="{TemplateBinding BorderThickness}"
-                                          Template="{StaticResource ComboBoxToggleButtonTemplate}"
+                                          Focusable="False"
                                           IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-                                          ClickMode="Press" />
+                                          Template="{StaticResource ComboBoxToggleButtonTemplate}" />
                             <ContentPresenter x:Name="contentPresenter"
                                               Content="{TemplateBinding SelectionBoxItem}"
                                               ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
@@ -173,11 +176,11 @@
                                               ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
                                               HorizontalAlignment="Left"
                                               VerticalAlignment="Center"
-                                              IsHitTestVisible="False"
-                                              Margin="{TemplateBinding Padding}" />
+                                              Margin="{TemplateBinding Padding}"
+                                              IsHitTestVisible="False" />
                             <Popup x:Name="PART_Popup"
                                    AllowsTransparency="True"
-                                   IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                   IsOpen="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
                                    Placement="Bottom"
                                    Margin="0,2,0,0"
                                    Focusable="False">
@@ -397,14 +400,21 @@
                                     </Border>
                                 </StackPanel>
 
-                                <TextBlock Text="Windows 11 Çoklu Monitör Görev Çubuğu Yöneticisi"
+                                <TextBlock Text="{Binding Loc.Subtitle}"
                                            FontSize="13" Foreground="{StaticResource TextSecondary}" Margin="0,3,0,0" />
                             </StackPanel>
                         </StackPanel>
                     </Border>
 
+                    <!-- Language Selector & Refresh Button -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Content="Yenile" Command="{Binding RefreshCommand}" Style="{StaticResource ModernButton}" />
+                        <ComboBox Style="{StaticResource ModernDarkComboBox}"
+                                  SelectedIndex="{Binding SelectedLanguageIndex, Mode=TwoWay}"
+                                  Width="130" Margin="0,0,10,0" VerticalAlignment="Center">
+                            <ComboBoxItem Content="🇹🇷 Türkçe" />
+                            <ComboBoxItem Content="🇬🇧 English" />
+                        </ComboBox>
+                        <Button Content="{Binding Loc.Refresh}" Command="{Binding RefreshCommand}" Style="{StaticResource ModernButton}" />
                     </StackPanel>
                 </Grid>
             </StackPanel>
@@ -418,7 +428,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="Durum:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,8,0" />
+                        <TextBlock Text="{Binding Loc.StatusLabel}" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,8,0" />
                         <TextBlock Text="{Binding StatusText}" Foreground="#00E5FF" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
@@ -429,7 +439,7 @@
             <!-- Main Tab Control -->
             <TabControl Style="{StaticResource ModernTabControl}">
                 <!-- Tab 1: Monitörler & Görev Çubukları -->
-                <TabItem Header="Görev Çubukları">
+                <TabItem Header="{Binding Loc.TabTaskbars}">
                     <DockPanel>
                         <!-- Action Buttons Bar for Monitors -->
                         <Border DockPanel.Dock="Bottom" Margin="0,16,0,0">
@@ -440,11 +450,11 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <Button Grid.Column="0" Content="Varsayılanları Geri Yükle"
+                                <Button Grid.Column="0" Content="{Binding Loc.RestoreDefaults}"
                                         Command="{Binding RestoreDefaultsCommand}"
                                         Style="{StaticResource ModernButton}" />
 
-                                <Button Grid.Column="2" Content="İlkeleri Uygula"
+                                <Button Grid.Column="2" Content="{Binding Loc.ApplyPolicies}"
                                         Command="{Binding ApplyCommand}"
                                         Style="{StaticResource AccentButton}"
                                         Padding="28,10" FontSize="15" />
@@ -469,7 +479,7 @@
                                                         <TextBlock Text="{Binding FriendlyName}" FontSize="16" FontWeight="SemiBold" Foreground="#FFFFFF" />
                                                         <Border Background="#204020" BorderBrush="#308030" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="10,0,0,0"
                                                                 Visibility="{Binding IsPrimary, Converter={StaticResource BoolToVis}}">
-                                                            <TextBlock Text="ANA EKRAN" FontSize="10" FontWeight="Bold" Foreground="#77FF77" />
+                                                            <TextBlock Text="{Binding Loc.PrimaryBadge}" FontSize="10" FontWeight="Bold" Foreground="#77FF77" />
                                                         </Border>
                                                     </StackPanel>
 
@@ -478,18 +488,18 @@
                                                         <TextBlock Text="  •  " Foreground="#555555" />
                                                         <TextBlock Text="{Binding DpiText}" FontSize="13" Foreground="{StaticResource TextSecondary}" />
                                                         <TextBlock Text="  •  " Foreground="#555555" />
-                                                        <TextBlock Text="Görev Çubuğu: " FontSize="13" Foreground="{StaticResource TextSecondary}" />
+                                                        <TextBlock Text="{Binding Loc.TaskbarLabel}" FontSize="13" Foreground="{StaticResource TextSecondary}" />
                                                         <TextBlock Text="{Binding TaskbarStateText}" FontSize="13" FontWeight="SemiBold" Foreground="{Binding TaskbarStateColor}" />
                                                     </StackPanel>
                                                 </StackPanel>
 
                                                 <!-- Right: Policy Selector -->
                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                    <TextBlock Text="Görev Çubuğu İlkesi" FontSize="11" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,4" />
+                                                    <TextBlock Text="{Binding Loc.TaskbarPolicyLabel}" FontSize="11" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,4" />
                                                     <ComboBox Style="{StaticResource ModernDarkComboBox}"
                                                               SelectedIndex="{Binding SelectedPolicyIndex}">
-                                                        <ComboBoxItem Content="Her Zaman Görünür" />
-                                                        <ComboBoxItem Content="Kalıcı Olarak Gizli" />
+                                                        <ComboBoxItem Content="{Binding Loc.PolicyAlwaysVisible}" />
+                                                        <ComboBoxItem Content="{Binding Loc.PolicyPermanentlyHidden}" />
                                                     </ComboBox>
                                                 </StackPanel>
                                             </Grid>
@@ -502,16 +512,16 @@
                 </TabItem>
 
                 <!-- Tab 2: Uygulama ve Kurtarma Ayarları -->
-                <TabItem Header="Uygulama ve Kurtarma Ayarları">
+                <TabItem Header="{Binding Loc.TabSettings}">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,2,0,0">
                             <!-- Sistem Başlangıcı -->
                             <Border Style="{StaticResource CardBorderStyle}">
                                 <StackPanel>
-                                    <TextBlock Text="Sistem Başlangıcı" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,12" Foreground="#FFFFFF" />
-                                    <CheckBox IsChecked="{Binding StartWithWindows}" Content="Windows açılışında otomatik başlat"
+                                    <TextBlock Text="{Binding Loc.SystemStartupHeader}" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,12" Foreground="#FFFFFF" />
+                                    <CheckBox IsChecked="{Binding StartWithWindows}" Content="{Binding Loc.StartWithWindows}"
                                               Foreground="#E0E0E0" Margin="0,0,0,12" FontSize="13" />
-                                    <CheckBox IsChecked="{Binding StartMinimizedToTray}" Content="Sistem bildirim alanında (tepside) simge durumunda başlat"
+                                    <CheckBox IsChecked="{Binding StartMinimizedToTray}" Content="{Binding Loc.StartMinimizedToTray}"
                                               Foreground="#E0E0E0" Margin="0,0,0,4" FontSize="13" />
                                 </StackPanel>
                             </Border>
@@ -519,14 +529,40 @@
                             <!-- Kurtarma ve Güvenlik -->
                             <Border Style="{StaticResource CardBorderStyle}">
                                 <StackPanel>
-                                    <TextBlock Text="Kurtarma ve Güvenlik" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,12" Foreground="#FFFFFF" />
+                                    <TextBlock Text="{Binding Loc.RecoverySecurityHeader}" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,12" Foreground="#FFFFFF" />
                                     <CheckBox IsChecked="{Binding AutoRecoverOnExplorerRestart}"
-                                              Content="Windows Gezgini (Explorer) yeniden başladığında görev çubuğu ilkelerini otomatik olarak yeniden uygula"
+                                              Content="{Binding Loc.AutoRecoverExplorer}"
                                               Foreground="#E0E0E0" Margin="0,0,0,12" FontSize="13" />
                                     <CheckBox IsChecked="{Binding AutoRecoverOnDisplayChange}"
-                                              Content="Monitör bağlandığında/çıkarıldığında veya çözünürlük değiştiğinde ilkeleri otomatik olarak uyarla"
+                                              Content="{Binding Loc.AutoRecoverDisplay}"
                                               Foreground="#E0E0E0" Margin="0,0,0,4" FontSize="13" />
                                 </StackPanel>
+                            </Border>
+
+                            <!-- Pencere Kapatma Davranışı -->
+                            <Border Style="{StaticResource CardBorderStyle}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Loc.CloseActionHeader}" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,6" Foreground="#FFFFFF" />
+                                        <TextBlock Text="{Binding Loc.CloseActionDescription}" FontSize="12" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,8" />
+                                        <ComboBox Style="{StaticResource ModernDarkComboBox}"
+                                                  SelectedIndex="{Binding SelectedCloseActionIndex, Mode=TwoWay}"
+                                                  Width="380" HorizontalAlignment="Left">
+                                            <ComboBoxItem Content="{Binding Loc.CloseActionAsk}" />
+                                            <ComboBoxItem Content="{Binding Loc.CloseActionMinimize}" />
+                                            <ComboBoxItem Content="{Binding Loc.CloseActionExit}" />
+                                        </ComboBox>
+                                    </StackPanel>
+
+                                    <Button Grid.Column="1" Content="{Binding Loc.ResetCloseAction}"
+                                            Command="{Binding ResetCloseActionCommand}"
+                                            Style="{StaticResource ModernButton}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                </Grid>
                             </Border>
 
                             <!-- Tanılama ve Rapor -->
@@ -538,12 +574,12 @@
                                     </Grid.ColumnDefinitions>
 
                                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                        <TextBlock Text="Tanılama ve Raporlama" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,8" Foreground="#FFFFFF" />
-                                        <CheckBox IsChecked="{Binding EnableDiagnosticLogging}" Content="Ayrıntılı tanılama günlük kaydını (Diagnostic Logging) etkinleştir"
+                                        <TextBlock Text="{Binding Loc.DiagnosticReportHeader}" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,8" Foreground="#FFFFFF" />
+                                        <CheckBox IsChecked="{Binding EnableDiagnosticLogging}" Content="{Binding Loc.EnableDiagnosticLogging}"
                                                   Foreground="#E0E0E0" Margin="0,0,0,4" FontSize="13" />
                                     </StackPanel>
 
-                                    <Button Grid.Column="1" Content="Detaylı Sistem Raporu" Command="{Binding GenerateReportCommand}"
+                                    <Button Grid.Column="1" Content="{Binding Loc.DetailedSystemReport}" Command="{Binding GenerateReportCommand}"
                                             Style="{StaticResource ModernButton}" VerticalAlignment="Center" Margin="16,0,0,0" />
                                 </Grid>
                             </Border>
@@ -553,6 +589,51 @@
             </TabControl>
         </DockPanel>
 
+        <!-- Close Confirmation Modal Overlay -->
+        <Grid Background="#B0000000" Visibility="{Binding IsCloseModalOpen, Converter={StaticResource BoolToVis}}" Panel.ZIndex="100">
+            <Border Background="#252525" BorderBrush="#444444" BorderThickness="1" CornerRadius="10"
+                    Width="520" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="28,24">
+                <StackPanel>
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Image Source="Assets/app.png" Width="28" Height="28" Margin="0,0,10,0" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding Loc.CloseModalTitle}" FontSize="18" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <Button Grid.Column="1" Content="✕" Command="{Binding CancelCloseModalCommand}"
+                                Style="{StaticResource ModernButton}" Padding="8,4" FontSize="12" />
+                    </Grid>
+
+                    <TextBlock Text="{Binding Loc.CloseModalDescription}" Foreground="#CCCCCC" FontSize="13" TextWrapping="Wrap" Margin="0,0,0,20" />
+
+                    <CheckBox IsChecked="{Binding CloseModalRememberChoice}"
+                              Content="{Binding Loc.CloseModalRememberChoice}"
+                              Foreground="#E0E0E0" FontSize="13" Margin="0,0,0,24" />
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0" Content="{Binding Loc.CloseModalMinimize}"
+                                Command="{Binding ConfirmMinimizeToTrayCommand}"
+                                Style="{StaticResource AccentButton}" Padding="14,10" FontSize="13" />
+
+                        <Button Grid.Column="2" Content="{Binding Loc.CloseModalExit}"
+                                Command="{Binding ConfirmExitCommand}"
+                                Style="{StaticResource ModernButton}" Padding="14,10" FontSize="13" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
         <!-- Diagnostic Report Modal Overlay -->
         <Grid Background="#B0000000" Visibility="{Binding IsReportModalOpen, Converter={StaticResource BoolToVis}}">
             <Border Background="#252525" BorderBrush="#444444" BorderThickness="1" CornerRadius="8"
@@ -560,8 +641,8 @@
                 <DockPanel>
                     <!-- Modal Header -->
                     <Grid DockPanel.Dock="Top" Margin="0,0,0,16">
-                        <TextBlock Text="Sistem Tanılama Raporu" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center" />
-                        <Button Content="Kapat" Command="{Binding CloseReportModalCommand}" Style="{StaticResource ModernButton}" HorizontalAlignment="Right" />
+                        <TextBlock Text="{Binding Loc.DiagnosticModalTitle}" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                        <Button Content="{Binding Loc.CloseModal}" Command="{Binding CloseReportModalCommand}" Style="{StaticResource ModernButton}" HorizontalAlignment="Right" />
                     </Grid>
 
                     <!-- Report Content -->

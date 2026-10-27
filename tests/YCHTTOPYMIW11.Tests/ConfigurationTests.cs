@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -22,6 +22,7 @@ namespace YCHTTOPYMIW11.Tests
         {
             var config = new AppConfig();
             Assert.Equal(1, config.Version);
+            Assert.Equal(CloseAction.Ask, config.CloseAction);
             Assert.False(config.StartWithWindows);
             Assert.False(config.StartMinimizedToTray);
             Assert.True(config.EnableDiagnosticLogging);
@@ -67,6 +68,7 @@ namespace YCHTTOPYMIW11.Tests
             Assert.NotNull(config);
 
             config.StartWithWindows = true;
+            config.CloseAction = CloseAction.MinimizeToTray;
             config.MonitorPolicies.Add(new MonitorPolicyConfig
             {
                 DeviceName = @"\\.\DISPLAY1",
@@ -78,6 +80,7 @@ namespace YCHTTOPYMIW11.Tests
 
             var reloaded = service.LoadConfig();
             Assert.True(reloaded.StartWithWindows);
+            Assert.Equal(CloseAction.MinimizeToTray, reloaded.CloseAction);
             Assert.Single(reloaded.MonitorPolicies);
             Assert.Equal(@"\\.\DISPLAY1", reloaded.MonitorPolicies[0].DeviceName);
             Assert.Equal(TaskbarPolicy.PermanentlyHidden, reloaded.MonitorPolicies[0].Policy);

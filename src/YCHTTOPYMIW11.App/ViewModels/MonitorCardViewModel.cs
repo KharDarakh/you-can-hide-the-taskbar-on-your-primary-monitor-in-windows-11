@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using YCHTTOPYMIW11.App.Services;
 using YCHTTOPYMIW11.Core.Models;
 
 namespace YCHTTOPYMIW11.App.ViewModels
@@ -17,13 +18,21 @@ namespace YCHTTOPYMIW11.App.ViewModels
         private bool _isTaskbarVisible = true;
         private int _selectedPolicyIndex = 0; // 0: AlwaysVisible, 1: PermanentlyHidden
         private string _statusMessage = string.Empty;
+        private TaskbarWindowInfo? _lastTaskbar;
 
         public DisplayInfo DisplayInfo { get; }
+        public LocalizationService Loc => LocalizationService.Instance;
 
         public MonitorCardViewModel(DisplayInfo displayInfo)
         {
             DisplayInfo = displayInfo;
+            LocalizationService.Instance.LanguageChanged += OnLanguageChanged;
             UpdateFromDisplay(displayInfo);
+        }
+
+        private void OnLanguageChanged()
+        {
+            RefreshTexts();
         }
 
         public string FriendlyName
@@ -127,26 +136,41 @@ namespace YCHTTOPYMIW11.App.ViewModels
             BoundsText = $"({display.MonitorBounds.Left}, {display.MonitorBounds.Top}, {display.MonitorBounds.Right}, {display.MonitorBounds.Bottom})";
             WorkAreaText = $"({display.WorkArea.Left}, {display.WorkArea.Top}, {display.WorkArea.Right}, {display.WorkArea.Bottom}) [{display.WorkArea.Width}x{display.WorkArea.Height}]";
 
-            int reserved = display.Height - display.WorkArea.Height;
-            ReservedAreaText = reserved > 0 ? $"{reserved} px (Ayrılmış Alan)" : "Ayrılmış alan yok (Tam Ekran)";
-            DpiText = $"{display.DpiX} DPI (%{display.ScaleFactor * 100:0})";
-            OnPropertyChanged(nameof(SummaryText));
+            RefreshTexts();
         }
 
         public void UpdateTaskbarState(TaskbarWindowInfo? taskbar)
         {
-            if (taskbar == null)
+            _lastTaskbar = taskbar;
+            RefreshTexts();
+        }
+
+        public void RefreshTexts()
+        {
+            var loc = LocalizationService.Instance;
+            int reserved = DisplayInfo.Height - DisplayInfo.WorkArea.Height;
+            ReservedAreaText = reserved > 0
+                ? string.Format(loc.ReservedAreaFormatted, reserved)
+                : loc.ReservedAreaNone;
+
+            DpiText = $"{DisplayInfo.DpiX} DPI (%{DisplayInfo.ScaleFactor * 100:0})";
+
+            if (_lastTaskbar == null)
             {
-                TaskbarStateText = "Görev çubuğu bulunamadı";
+                TaskbarStateText = loc.StateNotFound;
                 IsTaskbarVisible = false;
             }
             else
             {
-                IsTaskbarVisible = taskbar.IsVisible;
-                TaskbarStateText = taskbar.IsVisible ? "Görünür" : "Kalıcı Olarak Gizli";
+                IsTaskbarVisible = _lastTaskbar.IsVisible;
+                TaskbarStateText = _lastTaskbar.IsVisible ? loc.StateVisible : loc.StateHidden;
             }
+
+            OnPropertyChanged(nameof(SummaryText));
+            OnPropertyChanged(nameof(ReservedAreaText));
+            OnPropertyChanged(nameof(DpiText));
+            OnPropertyChanged(nameof(TaskbarStateText));
             OnPropertyChanged(nameof(TaskbarStateColor));
         }
     }
 }
-

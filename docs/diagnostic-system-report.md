@@ -1,5 +1,5 @@
 # YCHTTOPYMIW11 Windows 11 Sistem Tanılama Raporu
-Rapor Oluşturulma Zamanı (UTC): 2026-10-27 04:49:33
+Rapor Oluşturulma Zamanı (UTC): 2026-10-27 04:58:57
 
 ## 1. Algılanan Monitörler ve Çalışma Alanları
 - **DISPLAY1 (Ana Ekran)** (\\.\DISPLAY1)
@@ -34,7 +34,7 @@ Rapor Oluşturulma Zamanı (UTC): 2026-10-27 04:49:33
 - **SysListView32 HWND:** 0x301D6
   - Sınırlar: (-1920, 0, 2560, 1440) [4480x1440], İstemci Alanı: (0, 0, 4480, 1440) [4480x1440]
   - Stil: 0x56003A40
-  - Toplam Masaüstü Simgesi Sayısı: 8
+  - Toplam Masaüstü Simgesi Sayısı: 9
   - Izgara Hizalama Adımı: 75x99 px
   - Örnek Simge Koordinatları:
     - Simge 0: (1933, 2)
@@ -45,6 +45,7 @@ Rapor Oluşturulma Zamanı (UTC): 2026-10-27 04:49:33
     - Simge 5: (1933, 497)
     - Simge 6: (1933, 596)
     - Simge 7: (1933, 695)
+    - Simge 8: (1933, 794)
 
 ## 4. Masaüstü Çalışma Alanı Durum Analizi (Conditions A, B, C, D)
 - **Durum A (Çalışma Alanı Kısıtlaması):** GEÇERLİ (Aktif)
